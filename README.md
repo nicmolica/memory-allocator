@@ -1,9 +1,9 @@
 # TODO: Edit the following information 
 
-- Canvas Team Name: 
-- Names of Team Members:
-- NUIDs of Team members:
-- Northeastern email addresses of Team Members:
+- Canvas Team Name: N/A (I can't find a canvas group but Github automatically named my repo 62)
+- Names of Team Members: Nicholas Molica  
+- NUIDs of Team members: 001229615
+- Northeastern email addresses of Team Members: molica.n@northeastern.edu
 - How many hours did it take you to complete this assignment?
 - Did you collaborate with any other students/TAs/Professors?
 - Did you use any external resources? (Cite them below)
