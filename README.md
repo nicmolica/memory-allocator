@@ -14,8 +14,8 @@
 
 **EDITME:** Check the box for which allocation strategy you implemented (This helps the TAs with grading, we'll figure it out if you forget.)
 
-- [x] First-Fit
-- [ ] Best-Fit allocator
+- [ ] First-Fit
+- [x] Best-Fit allocator
 
 Other notes: *If you did anything above and beyond, or want to leave a TA a note you may do so here.*
 

@@ -5,7 +5,7 @@ import os
 os.system('clang -g tests/test1.c -o tests/test1')
 os.system('clang -g tests/test2.c -o tests/test2')
 os.system('clang -g tests/test3.c -o tests/test3')
-os.system('clang -g tests/MyThreadTest.c -o tests/MyThreadTest -lpthread')
+# os.system('clang -g tests/MyThreadTest.c -o tests/MyThreadTest -lpthread')
 
 
 
