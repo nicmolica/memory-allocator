@@ -67,12 +67,7 @@ void initialize_freelists(void) {
 // If the head hasn't been initialized, initialize it. Else, find the best block to place our new
 // memory in or if no best block exists, add a new one to the end.
 void* alloc(size_t s) {
-	pthread_mutex_lock(&sbrk_lock);
-	if (cpus == 0) {
-		initialize_freelists();
-	}
-	pthread_mutex_unlock(&sbrk_lock);
-
+	//pthread_mutex_lock(&sbrk_lock);
 	block_t* thread_head = head[sched_getcpu()];
 	if (head[sched_getcpu()] == NULL) {
 		pthread_mutex_lock(&sbrk_lock);
@@ -128,11 +123,18 @@ void* alloc(size_t s) {
 		new_block->free = 0;
 	}
 	return new_block->memory;
+	//pthread_mutex_unlock(&sbrk_lock);
 }
 
 // Call our allocation algorithm and tell the user if it fails or if it succeeds. Return a pointer
 // to the beginning of the usable memory (skipping the header).
-void* mymalloc(size_t s){
+void* mymalloc(size_t s) {
+	pthread_mutex_lock(&sbrk_lock);
+        if (cpus == 0) {
+                initialize_freelists();
+        }
+        pthread_mutex_unlock(&sbrk_lock);
+	
 	pthread_mutex_lock(&lock[sched_getcpu()]);
 	void* p = alloc(s);
 	pthread_mutex_unlock(&lock[sched_getcpu()]);
@@ -148,6 +150,12 @@ void* mymalloc(size_t s){
 
 // Call our allocation algorithm and then zero out the contents. Tell the user if it was successful or not.
 void* mycalloc(size_t nmemb, size_t s) {
+	pthread_mutex_lock(&sbrk_lock);
+        if (cpus == 0) {
+                initialize_freelists();
+        }
+        pthread_mutex_unlock(&sbrk_lock);
+
 	pthread_mutex_lock(&lock[sched_getcpu()]);
 	void* p = alloc(nmemb * s);
 	pthread_mutex_unlock(&lock[sched_getcpu()]);

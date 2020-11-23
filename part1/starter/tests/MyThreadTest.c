@@ -1,266 +1,70 @@
-// Compile by either typing 'make' in the terminal
-// or manually with 'clang -lpthread painters.c -o painters'
-
-// ===================== Include Libraries =====================
 #define _POSIX_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <pthread.h>
-#include <time.h>
-// ===================== Setup our Canvas =====================
-#define CANVAS_WIDTH 256
-#define CANVAS_HEIGHT 256
+#include <string.h>
+#include <malloc.h>
 
-// Our canvas is a shared piece of memory that each artist can access.
-// Within our canvas, every pixel has a red, green, and blue component.
-// Because we only want one artist at a time drawing on a pixel
-// each pixel also has a lock associated with it.
-typedef struct pixel{
-	int r,g,b;
-	pthread_mutex_t lock;
-}pixel_t;
+char** greetings;
 
-// Create our canvas as a global variable.
-// This canvas will be shared amongst all of our threads.
-pixel_t canvas[CANVAS_WIDTH][CANVAS_HEIGHT];
-
-// ===================== Setup our Artists =====================
-// This is our data structure for each artist
-typedef struct artist{
-	int x,y;	// Store the position of where an artist is painting
-	int r,g,b;	// The color an artist paints in.
-}artist_t;
-
-// An artist can move in one of the following directions
-// This is a handy abstraction, as I can 'roll an 8-sided dice'
-// and depending on what value that is, move in an x and y position
-// corresponding with the index below.
-// e.g.
-// A roll of 0 moves my artist (-1,0).
-// A roll of 7 moves my artist (-1,-1)
-const int moves = 8;
-const int movement[][2] ={
-	{-1, 0}, // to the left
-    	{-1, 1}, // to the left and down
-    	{0, 1}, // down
-    	{1, 1}, // to the right and down
-    	{1, 0}, // to the right
-    	{1, -1}, // to the right and up
-    	{0, -1}, // up
-    	{-1, -1} // to the left and up
-};
-
-
-// This function sets up the canvas
-// The purpose is to iterate through every pixel and
-// setup the initial values of the pixel and initialize the
-// lock structure.
-// The intent is to call this function early in main.
-void initCanvas(){
-	for(int x =0; x < CANVAS_WIDTH; ++x){
-		for(int y =0; y < CANVAS_HEIGHT; ++y){
-			canvas[x][y].r = 255;
-			canvas[x][y].g = 255;
-			canvas[x][y].b = 255;
-			pthread_mutex_init(&canvas[x][y].lock, NULL);
-		}
-	}
+void* bonjour(void* index) {
+	int* i = (int*)index;
+	char* french = (char*)malloc(9 * sizeof(char));
+	strncpy(french, "Bonjour!", 9);
+	greetings[*i] = french;
+	pthread_exit(NULL);
 }
 
-// This function saves the canvas as a PPM.
-// This function should be called after all painting
-// operations have completed.
-void outputCanvas(){
-	// Write out the PPM file
-	// If you are looking at this solution, it could
-	// be better laid out in a 'save function'
-	FILE *fp;
-	fp = fopen("canvas.ppm","w+");
-	fputs("P3\n",fp);
-	fputs("256 256\n",fp);
-	fputs("255\n",fp);
-	for(int x =0; x < CANVAS_WIDTH; ++x){
-		for(int y =0; y < CANVAS_HEIGHT; ++y){
-			fprintf(fp,"%d",canvas[x][y].r);
-			fputs(" ",fp);
-			fprintf(fp,"%d",canvas[x][y].g);
-			fputs(" ",fp);
-			fprintf(fp,"%d",canvas[x][y].b);
-			fputs(" ",fp);
-		}
-		fputs("\n",fp);
-	}
-	fclose(fp);
+void* gutentag(void* index) {
+	int* i = (int*)index;
+	char* german = (char*)malloc(11 * sizeof(char));
+        strncpy(german, "Guten tag!", 11);
+        greetings[*i] = german;
+	pthread_exit(NULL);
 }
 
-// TODO: You will make code changes here.
-// Here is our thread function for painting with no locking implemented.
-// You may modify this code however you like.
-void* paint(void* args) {
-    	// Convert our argument structure to an artist
-    	artist_t* painter = (artist_t*)args;
-
-	// get a seed for rand_r
-	// Note that I attempted to get different random seeds for each thread with
-	// this line of code, but was unable to get it to work.
-	unsigned int seed = time(pthread_self());
-
-    	// Our artist will now attempt to paint 5000 strokes of paint
-	// on our shared canvas
-	for(int i =0; i < 5000; ++i) {
-        	// Store our initial position
-        	int currentX = painter->x;
-        	int currentY = painter->y;
-        	// Generate a random number from 0-7
-        	int roll = rand_r(&seed)%8;
-        	painter->x += movement[roll][0];
-        	painter->y += movement[roll][1];
-        	// Clamp the range of our movements so we only
-        	// paint within our 256x256 canvas.
-        	if(painter->x < 0) { painter->x = 0; }
-        	if(painter->x > CANVAS_WIDTH-1) { painter->x  = CANVAS_WIDTH-1; }
-        	if(painter->y < 0) { painter->y = 0; }
-        	if(painter->y > CANVAS_HEIGHT-1) { painter->y = CANVAS_HEIGHT-1; }
-
-        	// TODO: Implement some locking mechanism
-        	// at first glance this seems okay, but convince yourself
-        	// we can still have data races.
-        	// I suggest investigating a 'trylock'
-
-		// Try to paint
-        	// paint the pixel if it is white.
-        	if(canvas[painter->x][painter->y].r == 255 &&
-            	   canvas[painter->x][painter->y].g == 255 &&
-            	   canvas[painter->x][painter->y].b == 255 &&
-		   pthread_mutex_trylock(&canvas[painter->x][painter->y].lock) == 0) {
-                	canvas[painter->x][painter->y].r = painter->r;
-                	canvas[painter->x][painter->y].g = painter->g;
-                	canvas[painter->x][painter->y].b = painter->b;
-			pthread_mutex_unlock(&canvas[painter->x][painter->y].lock);
-        	} else {
-        		// If we cannot paint the pixel, then we backtrack
-        		// to a previous pixel that we own.
-            		painter->x = currentX;
-            		painter->y = currentY;
-        	}
-    	}
+void* cefaci(void* index) {
+	int* i = (int*)index;
+	char* romanian = (char*)malloc(9 * sizeof(char));
+        strncpy(romanian, "Ce faci!", 9);
+        greetings[*i] = romanian;
+	pthread_exit(NULL);
 }
 
-// Return 1 if the ith artist's color matches any of the other 'novice' artists, or any of the
-// four 'expert' artists.
-int colorIsTaken(artist_t* artists, int i) {
-	if ((artists[i].r == 255 && artists[i].g == 0 && artists[i].b == 165) ||
-            (artists[i].r == 128 && artists[i].g == 0 && artists[i].b == 128) ||
-            (artists[i].r == 255 && artists[i].g == 0 && artists[i].b == 0) ||
-            (artists[i].r == 0 && artists[i].g == 0 && artists[i].b == 255)) {
-                return 1;
-        }
-
-	for (int j = 0; j < i; j++) {
-		if (artists[j].r == artists[i].r &&
-		    artists[j].g == artists[i].g &&
-		    artists[j].b == artists[i].b) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-// ================== Program Entry Point ============
 int main() {
-	// Initialize our 'blank' canvas
-	initCanvas();
+	// (1) Malloc for some size of your shared data (i.e. how many strings will you have)
+	greetings = (char**)malloc(3 * sizeof(char*));
 
-	// Our four expert artists
-	artist_t* Michaelangelo = malloc(sizeof(artist_t));
-	artist_t* Donatello  = malloc(sizeof(artist_t));
-	artist_t* Raphael = malloc(sizeof(artist_t));
-	artist_t* Leonardo = malloc(sizeof(artist_t));
+	// (2) Launch some number of threads (perhaps with two or more different functions)
+	pthread_t frenchid;
+	pthread_t germanid;
+	pthread_t romanianid;
 
-	// Fill in the artist attributes
-    	// You will see below how this structure is used
-    	// as arguments passed into our thread. This is a
-    	// simple and organized way to pass information along.
-	Michaelangelo->x = 0;
-	Michaelangelo->y = 0;
-	Michaelangelo->r = 255;
-	Michaelangelo->g = 0;
-	Michaelangelo->b = 165;
-	// Fill in the artist attributes
-	Donatello->x = CANVAS_WIDTH-1;
-	Donatello->y = 0;
-	Donatello->r = 128;
-	Donatello->g = 0;
-	Donatello->b = 128;
-	// Fill in the artist attributes
-	Raphael->x = CANVAS_WIDTH-1;
-	Raphael->y = CANVAS_HEIGHT-1;
-	Raphael->r = 255;
-	Raphael->g = 0;
-	Raphael->b = 0;
-	// Fill in the artist attributes
-	Leonardo->x = 0;
-	Leonardo->y = CANVAS_HEIGHT-1;
-	Leonardo->r = 0;
-	Leonardo->g = 0;
-	Leonardo->b = 255;
+	int* indices = (int*)malloc(3 * sizeof(int));
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
 
-    	// Hold our thread id's
-	pthread_t Michaelangelo_tid;
-	pthread_t Donatello_tid;
-	pthread_t Raphael_tid;
-	pthread_t Leonardo_tid;
-    	// Initialize a seed for our random number generator
-    	srand(time(NULL));
+	pthread_create(&frenchid, NULL, (void*)bonjour, (void*)&indices[0]);
+	pthread_create(&germanid, NULL, (void*)gutentag, (void*)&indices[1]);
+	pthread_create(&romanianid, NULL, (void*)cefaci, (void*)&indices[2]);
 
-	// Create our threads for each of our expert artists
-	pthread_create(&Michaelangelo_tid,NULL,(void*)paint,Michaelangelo);
-	pthread_create(&Donatello_tid,NULL,(void*)paint,Donatello);
-	pthread_create(&Raphael_tid,NULL,(void*)paint,Raphael);
-	pthread_create(&Leonardo_tid,NULL,(void*)paint,Leonardo);
-
-    	// TODO: Add 50 more artists
-    	int rookieArtists = 50;
-    	pthread_t moreArtists_tid[rookieArtists];
-	artist_t* moreArtists = (artist_t*)malloc(sizeof(artist_t) * rookieArtists);
-    	for(int i = 0; i < rookieArtists; i++) {
-		moreArtists[i].x = rand() % (CANVAS_WIDTH - 1);
-		moreArtists[i].y = rand() % (CANVAS_HEIGHT - 1);
-		moreArtists[i].r = rand() % 255;
-		moreArtists[i].g = rand() % 255;
-		moreArtists[i].b = rand() % 255;
-		if (colorIsTaken(moreArtists, i)) {
-			i--;
-		} else {
-			pthread_create(&moreArtists_tid[i], NULL, (void*)paint, &moreArtists[i]);
-		}
-	}
-
-	// Join each with the main thread.
-	// Do you think our ordering of launching each thread matters?
-	pthread_join(Michaelangelo_tid, NULL);
-	pthread_join(Donatello_tid, NULL);
-	pthread_join(Raphael_tid, NULL);
-	pthread_join(Leonardo_tid, NULL);
-
-    	// TODO: Add the join the 50 other artists threads here
-    	for(int i = 0; i < rookieArtists; i++) {
-		pthread_join(moreArtists_tid[i], NULL);
-	}
-
-    	// Save our canvas at the end of the painting session
-	outputCanvas();
-
-	// Terminate our program
-    	free(Michaelangelo);
-    	free(Donatello);
-    	free(Raphael);
-    	free(Leonardo);
-
-    	// TODO: Free any other memory you can think of
-	free(moreArtists);
+	// (3) Join some number of threads
+	pthread_join(frenchid, NULL);
+	pthread_join(germanid, NULL);
+	pthread_join(romanianid, NULL);
+	
+	// (4) Print the results of shared data (i.e. this is done sequentially)
+	printf("%s\n", greetings[0]);
+	printf("%s\n", greetings[1]);
+	printf("%s\n", greetings[2]);
+	
+	// (5) Cleanup your program
+	//free(greetings[0]);
+	//free(greetings[1]);
+	//free(greetings[2]);
+	free(greetings);
+	free(indices);
 
 	return 0;
 }
