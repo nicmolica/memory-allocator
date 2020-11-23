@@ -23,7 +23,7 @@ typedef struct block {
 block_t** head;
 
 // Global mutexes to ensure that multiple threads aren't trying to allocate at the same time.
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t* lock;
 pthread_mutex_t sbrk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // Global var for the number of CPUs.
@@ -56,9 +56,11 @@ void insert(block_t* new_block) {
 // This function is called the first time alloc is called. It initializes the CPU count and a freelist for each CPU.
 void initialize_freelists(void) {
 	cpus = get_nprocs_conf();
-	head = (block_t**)sbrk(BLOCK_SIZE * cpus);
+	head = (block_t**)sbrk(cpus * sizeof(block_t*));
+	lock = (pthread_mutex_t*)sbrk(cpus * sizeof(pthread_mutex_t));
 	for (int i = 0; i < cpus; i++) {
 		head[i] = (block_t*)NULL;
+		pthread_mutex_init(&lock[i], NULL);
 	}
 }
 
@@ -131,9 +133,9 @@ void* alloc(size_t s) {
 // Call our allocation algorithm and tell the user if it fails or if it succeeds. Return a pointer
 // to the beginning of the usable memory (skipping the header).
 void* mymalloc(size_t s){
-	pthread_mutex_lock(&lock);
+	pthread_mutex_lock(&lock[sched_getcpu()]);
 	void* p = alloc(s);
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&lock[sched_getcpu()]);
 
 	if(!p) {
 		fprintf(stderr, "Failed to allocate memory\n");
@@ -146,9 +148,9 @@ void* mymalloc(size_t s){
 
 // Call our allocation algorithm and then zero out the contents. Tell the user if it was successful or not.
 void* mycalloc(size_t nmemb, size_t s) {
-	pthread_mutex_lock(&lock);
+	pthread_mutex_lock(&lock[sched_getcpu()]);
 	void* p = alloc(nmemb * s);
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&lock[sched_getcpu()]);
 
 	if(!p){
 		fprintf(stderr, "Failed to allocate memory\n");
@@ -163,18 +165,18 @@ void* mycalloc(size_t nmemb, size_t s) {
 // Given a pointer to the beginning of a block of memory, find the associated block and mark it as
 // freed. If there is no block of memory associated with the pointer passed, tell the user.
 void myfree(void* ptr) {
-	pthread_mutex_lock(&lock);
+	pthread_mutex_lock(&lock[sched_getcpu()]);
 	block_t* iter = head[sched_getcpu()];
 	while(iter != NULL) {
 		if (iter->memory == ptr) {
 			iter->free = 1;
 			fprintf(stderr, "Freed some memory\n");
-			pthread_mutex_unlock(&lock);
+			pthread_mutex_unlock(&lock[sched_getcpu()]);
 			return;
 		} else {
 			iter = iter->next;
 		}
 	}
 	fprintf(stderr, "Failed to free memory\n");
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&lock[sched_getcpu()]);
 }
