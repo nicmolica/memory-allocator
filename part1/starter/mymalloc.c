@@ -67,7 +67,6 @@ void initialize_freelists(void) {
 // If the head hasn't been initialized, initialize it. Else, find the best block to place our new
 // memory in or if no best block exists, add a new one to the end.
 void* alloc(size_t s) {
-	//pthread_mutex_lock(&sbrk_lock);
 	block_t* thread_head = head[sched_getcpu()];
 	if (head[sched_getcpu()] == NULL) {
 		pthread_mutex_lock(&sbrk_lock);
@@ -123,7 +122,6 @@ void* alloc(size_t s) {
 		new_block->free = 0;
 	}
 	return new_block->memory;
-	//pthread_mutex_unlock(&sbrk_lock);
 }
 
 // Call our allocation algorithm and tell the user if it fails or if it succeeds. Return a pointer

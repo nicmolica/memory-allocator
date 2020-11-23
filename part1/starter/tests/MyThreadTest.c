@@ -7,27 +7,27 @@
 
 char** greetings;
 
-void* bonjour(void* index) {
-	int* i = (int*)index;
+void* bonjour() {
 	char* french = (char*)malloc(9 * sizeof(char));
-	strncpy(french, "Bonjour!", 9);
-	greetings[*i] = french;
+	strcpy(french, "Bonjour!");
+	greetings[0] = french;
+	free(french);
 	pthread_exit(NULL);
 }
 
-void* gutentag(void* index) {
-	int* i = (int*)index;
+void* gutentag() {
 	char* german = (char*)malloc(11 * sizeof(char));
-        strncpy(german, "Guten tag!", 11);
-        greetings[*i] = german;
+        strcpy(german, "Guten tag!");
+        greetings[1] = german;
+	free(german);
 	pthread_exit(NULL);
 }
 
-void* cefaci(void* index) {
-	int* i = (int*)index;
+void* cefaci() {
 	char* romanian = (char*)malloc(9 * sizeof(char));
-        strncpy(romanian, "Ce faci!", 9);
-        greetings[*i] = romanian;
+        strcpy(romanian, "Ce faci!");
+        greetings[2] = romanian;
+	free(romanian);
 	pthread_exit(NULL);
 }
 
@@ -40,14 +40,9 @@ int main() {
 	pthread_t germanid;
 	pthread_t romanianid;
 
-	int* indices = (int*)malloc(3 * sizeof(int));
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-
-	pthread_create(&frenchid, NULL, (void*)bonjour, (void*)&indices[0]);
-	pthread_create(&germanid, NULL, (void*)gutentag, (void*)&indices[1]);
-	pthread_create(&romanianid, NULL, (void*)cefaci, (void*)&indices[2]);
+	pthread_create(&frenchid, NULL, (void*)bonjour, NULL);
+	pthread_create(&germanid, NULL, (void*)gutentag, NULL);
+	pthread_create(&romanianid, NULL, (void*)cefaci, NULL);
 
 	// (3) Join some number of threads
 	pthread_join(frenchid, NULL);
@@ -59,12 +54,8 @@ int main() {
 	printf("%s\n", greetings[1]);
 	printf("%s\n", greetings[2]);
 	
-	// (5) Cleanup your program
-	//free(greetings[0]);
-	//free(greetings[1]);
-	//free(greetings[2]);
+	// (5) Clean up your program
 	free(greetings);
-	free(indices);
 
 	return 0;
 }
