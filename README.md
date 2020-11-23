@@ -4,11 +4,9 @@
 - Names of Team Members: Nicholas Molica  
 - NUIDs of Team members: 001229615
 - Northeastern email addresses of Team Members: molica.n@northeastern.edu
-- How many hours did it take you to complete this assignment?
-- Did you collaborate with any other students/TAs/Professors?
-- Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+- How many hours did it take you to complete this assignment? 10
+- Did you collaborate with any other students/TAs/Professors? No
+- Did you use any external resources? (Cite them below) No
 - (Optional) What was your favorite part of the assignment?
 - (Optional) How would you improve the assignment?
 
